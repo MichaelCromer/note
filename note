@@ -37,13 +37,14 @@ show_help () {
       -xgb --xgit-branch BRANCH   Exclude notes from git branch BRANCH
 
     SPECIAL:
-      -t, --today                 Include only today's notes.
       -l, --last [N]              Display the last matching note only.
                                   If N is given, display the last N notes.
+      -t, --today                 Include only today's notes.
 
     OTHER:
       -e, --edit                  Edit the output in \$EDITOR.
       -h, --help                  Display this help and exit.
+      --version                   Display version information and exit.
 
 --------------------------------------------------------------------------------
 
@@ -70,11 +71,26 @@ show_help () {
     note -e --today             Display today's notes in the editor.
     note -d 2020-01 -- "text"   Display all notes from January 2020,
                                   then add the note "text" to the notes file.
-    note -gr "repo" -xgb "hotfix" -m "feature" -l 10
+    note -l 10 -gr "my_repo" -xgb "hotfix" -m "feature"
                                 Display the last ten notes which are:
-                                  from the git repository "repo"; 
+                                  from the git repository "my_repo"; 
                                   excluding those from the branch "hotfix";
                                   and which match "feature".
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+EOF
+}
+
+show_version () {
+  cat << EOF
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+  note version 1.0.0
+  
+  Author:  Michael C. Cromer
+  License: GNU General Public License v3.0
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -165,6 +181,10 @@ main () {
         ;;
       -h|--help)
         show_help | fold -s -w "$COLUMNS"
+        exit 0
+        ;;
+      --version)
+        show_version | fold -s -w "$COLUMNS"
         exit 0
         ;;
       --)
