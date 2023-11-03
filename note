@@ -1,0 +1,231 @@
+#!/bin/bash
+#
+# This script is used to create a new note in the notes file
+
+# Set the notes directory
+
+NOTES_FILE="$HOME/.notes"
+
+
+show_help () {
+  cat << EOF
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+  Usage: note [OPTIONS] -- [NOTE]
+
+--------------------------------------------------------------------------------
+
+  Summary:
+    Manage, filter, and display notes from a central file.
+
+--------------------------------------------------------------------------------
+
+  Options:
+
+    GENERAL MATCHING:
+      -a, --after        DATE     Include notes on or after DATE 
+      -b, --before       DATE     Include notes strictly before DATE 
+      -d, --date         DATE     Include notes exactly on DATE 
+      -xd, --xdate       DATE     Include notes exactly on DATE 
+      -m, --match        STRING   Include notes matching STRING
+      -xm, -xmatch       STRING   Exclude notes matching STRING
+      -gr, --git-repo    REPO     Include notes from git repository REPO
+      -xgr --xgit-repo   REPO     Exclude notes from git repository REPO
+      -gb, --git-branch  BRANCH   Include notes from git branch BRANCH
+      -xgb --xgit-branch BRANCH   Exclude notes from git branch BRANCH
+
+    SPECIAL:
+      -t, --today                 Include only today's notes.
+      -l, --last [N]              Display the last matching note only.
+                                  If N is given, display the last N notes.
+
+    OTHER:
+      -e, --edit                  Edit the output in \$EDITOR.
+      -h, --help                  Display this help and exit.
+
+--------------------------------------------------------------------------------
+
+  Description:
+
+    FILTERING:
+      - Displays all notes matching all given options (logical AND).
+      - If no options are given, no notes are displayed. 
+      - Dates may be in the format YYYY-MM-DD or YYYY-MM or YYYY.
+
+    NOTE:
+      - A note must be preceded by the "--" option, to avoid ambiguity.
+      - If no "--" is given, or the note is empty, no note is added.
+      - If the current directory is inside a git repository, the repository 
+          name and current branch are automatically recorded.
+
+
+--------------------------------------------------------------------------------
+
+  Examples:
+    note -- "my new note"       Add the note "my new note" to the notes file.
+    note -m "string"            Display all notes matching "string".
+    note -a 2023                Display all notes from the year 2023 onwards.
+    note -e --today             Display today's notes in the editor.
+    note -d 2020-01 -- "text"   Display all notes from January 2020,
+                                  then add the note "text" to the notes file.
+    note -gr "repo" -xgb "hotfix" -m "feature" -l 10
+                                Display the last ten notes which are:
+                                  from the git repository "repo"; 
+                                  excluding those from the branch "hotfix";
+                                  and which match "feature".
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+EOF
+}
+
+main () {
+  if [[ $# -eq 0 ]]; then
+    show_help | fold -s -w "$COLUMNS"
+    exit 0
+  fi
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -a|--after)
+        local after_date="$2"
+        if ! [[ $after_date =~ ^[0-9]{4}(-[0-9]{2}){0,2}$ ]]; then
+          echo "Invalid date format (must be YYYY(-MM(-DD))): $after_date" >&2
+          exit 1
+        fi
+        shift 2
+        ;;
+      -b|--before)
+        local before_date="$2"
+        if ! [[ $before_date =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+          echo "Invalid date format (must be YYYY-MM-DD): $before_date" >&2
+          exit 1
+        fi
+        shift 2
+        ;;
+      -d|--date)
+        local on_date="$2"
+        if ! [[ $on_date =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+          echo "Invalid date format (must be YYYY-MM-DD): $on_date" >&2
+          exit 1
+        fi
+        shift 2
+        ;;
+      -xd|--xdate)
+        local exclude_on_date="$2"
+        if ! [[ $on_date =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+          echo "Invalid date format (must be YYYY-MM-DD): $on_date" >&2
+          exit 1
+        fi
+        shift 2
+        ;;
+      -m|--match)
+        local match="$2"
+        shift 2
+        ;;
+      -xm|--xmatch)
+        local exclude_match="$2"
+        shift 2
+        ;;
+      -gr|--git-repo)
+        local git_repo="$2"
+        shift 2
+        ;;
+      -xgr|--xgit-repo)
+        local exclude_git_repo="$2"
+        shift 2
+        ;;
+      -gb|--git-branch)
+        local git_branch="$2"
+        shift 2
+        ;;
+      -xgb|--xgit-branch)
+        local exclude_git_branch="$2"
+        shift 2
+        ;;
+      -e|--edit)
+        local edit=1
+        shift
+        ;;
+      --today)
+        local today=1
+        shift
+        ;;
+      -l|--last)
+        local last=1
+        if [[ $2 =~ ^[0-9]+$ ]]; then
+          local last="$2"
+          shift 2
+        else
+          shift
+        fi
+        shift
+        ;;
+      -h|--help)
+        show_help | fold -s -w "$COLUMNS"
+        exit 0
+        ;;
+      --)
+        shift
+        local note="$@"
+        break
+        ;;
+      *)
+        echo "Unknown option: $1" >&2
+        exit 1
+        ;;
+    esac
+  done
+  
+  data=$(cat "$NOTES_FILE")
+  [[ $today ]] && on_date=$(date +%Y-%m-%d)
+  [[ $on_date ]] &&  data=$(awk -F$'\t' -v date="$on_date" '$2 ~ date' <<< "$data") 
+  [[ $exclude_on_date ]] &&  data=$(awk -F$'\t' -v date="$exclude_on_date" '$2 !~ date' <<< "$data")
+  [[ $after_date ]] &&  data=$(awk -F$'\t' -v date="$after_date" '$2 >= date' <<< "$data") 
+  [[ $before_date ]] &&  data=$(awk -F$'\t' -v date="$before_date" '$2 < date' <<< "$data") 
+  [[ $match ]] && data=$(awk -F$'\t' -v mtch="$match" '$6 ~ mtch' <<< "$data")
+  [[ $exclude_match ]] && data=$(awk -F$'\t' -v mtch="$exclude_match" '$6 !~ mtch' <<< "$data")
+  [[ $git_repo ]] && data=$(awk -F$'\t' -v repo="$git_repo" '$4 ~ repo' <<< "$data")
+  [[ $exclude_git_repo ]] && data=$(awk -F$'\t' -v repo="$exclude_git_repo" '$4 !~ repo' <<< "$data")
+  [[ $git_branch ]] && data=$(awk -F$'\t' -v branch="$git_branch" '$5 ~ branch' <<< "$data")
+  [[ $exclude_git_branch ]] && data=$(awk -F$'\t' -v branch="$exclude_git_branch" '$5 !~ branch' <<< "$data")
+  [[ $last ]] && data=$(tail -n "$last" <<< "$data")
+
+  if [[ $edit ]]; then
+    local editor=${EDITOR:-vim}
+    local tmpfile=$(mktemp)
+    echo "$data" | column -t -s$'\t' > "$tmpfile"
+    $editor "$tmpfile"
+    rm "$tmpfile"
+  else 
+    echo "$data"
+  fi
+
+  if [[ -z $note ]]; then
+    exit 0
+  fi
+
+  note=$(echo "$note" | tr -d '\t' | tr -d '\n')
+  local date=$(date +%Y-%m-%d)
+  local time=$(date +%H:%M:%S)
+  local user=$(whoami)
+
+  # Check if the current directory is in a git repository
+  if [ $(git rev-parse --is-inside-work-tree) ]; then
+    # Get the base name of the top level directory of the git repository
+    dir=$(basename "$(git rev-parse --show-toplevel)")
+    # Get the current branch
+    branch=$(git rev-parse --abbrev-ref HEAD)
+  else
+    # If not in a git repo, use the base of the current directory and a branch of NULL
+    dir=$(basename "$HOME")
+    branch="NULL"
+  fi
+
+  # Append the note to the file
+  echo -e "$user\t$date\t$time\t$dir\t$branch\t$note" >> "$NOTES_FILE"
+
+}
+
+main "$@"
