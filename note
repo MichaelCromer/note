@@ -72,11 +72,14 @@ show_help () {
     note -e --today             Display today's notes in the editor.
     note -d 2020-01 -- "text"   Display all notes from January 2020,
                                   then add the note "text" to the notes file.
-    note -l 10 -gr "my_repo" -xgb "hotfix" -m "feature"
-                                Display the last ten notes which are:
+    note -X -l10 -gr "my_repo" -xgb "hotfix" -m "feature" >> TODO.md
+                                Find the last ten notes which are:
                                   from the git repository "my_repo"; 
                                   excluding those from the branch "hotfix";
-                                  and which match "feature".
+                                  and which match "feature". 
+                                Then, delete them from the notes file and 
+                                  append them to the TODO.md file.
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -189,6 +192,10 @@ main () {
         else
           shift
         fi
+        shift
+        ;;
+      -l[0-9]*) # a special case for those who like to use no space
+        local last="${1:2}"
         shift
         ;;
       -h|--help)
