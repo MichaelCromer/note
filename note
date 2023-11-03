@@ -97,6 +97,14 @@ show_version () {
 EOF
 }
 
+verify_date () {
+  local date="$1"
+  if ! [[ $date =~ ^[0-9]{4}(-[0-9]{2}){0,2}$ ]]; then
+    echo "Invalid date format (must be YYYY(-MM(-DD))): $after_date" >&2
+    exit 1
+  fi
+}
+
 main () {
   if [[ $# -eq 0 ]]; then
     show_help | fold -s -w "$COLUMNS"
@@ -111,34 +119,22 @@ main () {
     case "$1" in
       -a|--after)
         local after_date="$2"
-        if ! [[ $after_date =~ ^[0-9]{4}(-[0-9]{2}){0,2}$ ]]; then
-          echo "Invalid date format (must be YYYY(-MM(-DD))): $after_date" >&2
-          exit 1
-        fi
+        verify_date "$after_date"
         shift 2
         ;;
       -b|--before)
         local before_date="$2"
-        if ! [[ $before_date =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
-          echo "Invalid date format (must be YYYY-MM-DD): $before_date" >&2
-          exit 1
-        fi
+        verify_date "$before_date"
         shift 2
         ;;
       -d|--date)
         local on_date="$2"
-        if ! [[ $on_date =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
-          echo "Invalid date format (must be YYYY-MM-DD): $on_date" >&2
-          exit 1
-        fi
+        verify_date "$on_date"
         shift 2
         ;;
       -xd|--xdate)
         local exclude_on_date="$2"
-        if ! [[ $on_date =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
-          echo "Invalid date format (must be YYYY-MM-DD): $on_date" >&2
-          exit 1
-        fi
+        verify_date "$exclude_on_date"
         shift 2
         ;;
       -m|--match)
