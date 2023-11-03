@@ -103,6 +103,10 @@ main () {
     exit 0
   fi
 
+  if [[ "$1" == "--" ]]; then
+    local suppress=1
+  fi
+
   while [ $# -gt 0 ]; do
     case "$1" in
       -a|--after)
@@ -199,28 +203,30 @@ main () {
     esac
   done
   
-  data=$(cat "$NOTES_FILE")
-  [[ $today ]] && on_date=$(date +%Y-%m-%d)
-  [[ $on_date ]] &&  data=$(awk -F$'\t' -v date="$on_date" '$2 ~ date' <<< "$data") 
-  [[ $exclude_on_date ]] &&  data=$(awk -F$'\t' -v date="$exclude_on_date" '$2 !~ date' <<< "$data")
-  [[ $after_date ]] &&  data=$(awk -F$'\t' -v date="$after_date" '$2 >= date' <<< "$data") 
-  [[ $before_date ]] &&  data=$(awk -F$'\t' -v date="$before_date" '$2 < date' <<< "$data") 
-  [[ $match ]] && data=$(awk -F$'\t' -v mtch="$match" '$6 ~ mtch' <<< "$data")
-  [[ $exclude_match ]] && data=$(awk -F$'\t' -v mtch="$exclude_match" '$6 !~ mtch' <<< "$data")
-  [[ $git_repo ]] && data=$(awk -F$'\t' -v repo="$git_repo" '$4 ~ repo' <<< "$data")
-  [[ $exclude_git_repo ]] && data=$(awk -F$'\t' -v repo="$exclude_git_repo" '$4 !~ repo' <<< "$data")
-  [[ $git_branch ]] && data=$(awk -F$'\t' -v branch="$git_branch" '$5 ~ branch' <<< "$data")
-  [[ $exclude_git_branch ]] && data=$(awk -F$'\t' -v branch="$exclude_git_branch" '$5 !~ branch' <<< "$data")
-  [[ $last ]] && data=$(tail -n "$last" <<< "$data")
+  if ! [[ $suppress ]]; then
+    data=$(cat "$NOTES_FILE")
+    [[ $today ]] && on_date=$(date +%Y-%m-%d)
+    [[ $on_date ]] &&  data=$(awk -F$'\t' -v date="$on_date" '$2 ~ date' <<< "$data") 
+    [[ $exclude_on_date ]] &&  data=$(awk -F$'\t' -v date="$exclude_on_date" '$2 !~ date' <<< "$data")
+    [[ $after_date ]] &&  data=$(awk -F$'\t' -v date="$after_date" '$2 >= date' <<< "$data") 
+    [[ $before_date ]] &&  data=$(awk -F$'\t' -v date="$before_date" '$2 < date' <<< "$data") 
+    [[ $match ]] && data=$(awk -F$'\t' -v mtch="$match" '$6 ~ mtch' <<< "$data")
+    [[ $exclude_match ]] && data=$(awk -F$'\t' -v mtch="$exclude_match" '$6 !~ mtch' <<< "$data")
+    [[ $git_repo ]] && data=$(awk -F$'\t' -v repo="$git_repo" '$4 ~ repo' <<< "$data")
+    [[ $exclude_git_repo ]] && data=$(awk -F$'\t' -v repo="$exclude_git_repo" '$4 !~ repo' <<< "$data")
+    [[ $git_branch ]] && data=$(awk -F$'\t' -v branch="$git_branch" '$5 ~ branch' <<< "$data")
+    [[ $exclude_git_branch ]] && data=$(awk -F$'\t' -v branch="$exclude_git_branch" '$5 !~ branch' <<< "$data")
+    [[ $last ]] && data=$(tail -n "$last" <<< "$data")
 
-  if [[ $edit ]]; then
-    local editor=${EDITOR:-vim}
-    local tmpfile=$(mktemp)
-    echo "$data" | column -t -s$'\t' > "$tmpfile"
-    $editor "$tmpfile"
-    rm "$tmpfile"
-  else 
-    echo "$data"
+    if [[ $edit ]]; then
+      local editor=${EDITOR:-vim}
+      local tmpfile=$(mktemp)
+      echo "$data" | column -t -s$'\t' > "$tmpfile"
+      $editor "$tmpfile"
+      rm "$tmpfile"
+    else 
+      echo "$data"
+    fi
   fi
 
   if [[ -z $note ]]; then
