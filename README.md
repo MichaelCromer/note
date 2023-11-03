@@ -1,4 +1,4 @@
-# Note v1.0
+
 
 Written by Michael Cromer
 
@@ -42,7 +42,9 @@ Use
 
 to filter and then output the mathching notes to stdout.
 
-`note` implements many filters. You can filter by any of the above metadata, or by the note text itself. For example,
+`note` implements many filters. You can filter by any of the above metadata, or by the note text itself. For a full list of options, use `note --help`.
+
+#### Examples
 
     note -- "my new note"       Add the note "my new note" to the notes file.
     note -m "string"            Display all notes matching "string".
@@ -56,4 +58,11 @@ to filter and then output the mathching notes to stdout.
                                   excluding those from the branch "hotfix";
                                   and which match "feature".
 
-For a full list of options, use `note --help`.
+## TODO
+
+- [ ] Make note text robust to special characters
+- [ ] Add flag to dump filtered notes to file
+- [ ] Add flag to remove notes from the database once they've been filtered
+- [ ] ??? Enable editing of notes in place
+
+
