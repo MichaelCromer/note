@@ -60,9 +60,12 @@ to filter and then output the mathching notes to stdout.
 
 ## TODO
 
-- [ ] Make note text robust to special characters
 - [ ] Add flag to dump filtered notes to file
-- [ ] Add flag to remove notes from the database once they've been filtered
 - [ ] ??? Enable editing of notes in place
+- [ ] Consider removing the -x[char] syntax for negation, since this is achievable with regexp anyway...but is it better
+  to have the shorthand available?
+- [ ] Consider improving the flag names (-gr and -gb get annoyingly long with x)
+- [X] Make note text robust to special characters
+- [X] Add flag to remove notes from the database once they've been filtered
 
 
