@@ -55,6 +55,9 @@ show_help () {
       - Displays all notes matching all given options (logical AND).
       - If no options are given, no notes are displayed. 
       - Dates may be in the format YYYY-MM-DD or YYYY-MM or YYYY.
+      - All matching is done via regular expressions. You can use the 
+        standard regex metacharacters. To match a literal metacharacter,
+        escape it with a backslash.
 
     NOTE:
       - A note must be preceded by the "--" option, to avoid ambiguity.
@@ -72,6 +75,11 @@ show_help () {
     note -e --today             Display today's notes in the editor.
     note -d 2020-01 -- "text"   Display all notes from January 2020,
                                   then add the note "text" to the notes file.
+    note --today -X             Delete all notes from today.
+    note -b 2020-03 -xd 2018-01-10 -m "string1|string2" 
+                                Display all notes from before March 2020, 
+                                  excluding those from 10 January 2018,
+                                  and which match "string1" or "string2".
     note -X -l10 -gr "my_repo" -xgb "hotfix" -m "feature" >> TODO.md
                                 Find the last ten notes which are:
                                   from the git repository "my_repo"; 
