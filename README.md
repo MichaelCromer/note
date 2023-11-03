@@ -1,4 +1,4 @@
-# NOTE v1.0
+# NOTE v1.1
 
 Written by Michael Cromer
 
