@@ -5,13 +5,13 @@ Written by Michael Cromer
 ## Summary
 
 Take notes from anywhere in the terminal. Filter existing notes based on metadata, and send them to stdout or to your
-$EDITOR.
+`$EDITOR`.
 
 ## Installation
 
     git clone
 
-- Make sure the location is in your $PATH!
+- Make sure the location is in your `$PATH`!
 
 ## Usage
 
@@ -31,16 +31,16 @@ __NB:__ The double dash is _always_ required to distinguish the note text, even 
 
 Notes are stored with the following metadata:
 - username
-- date (YYYY-MM-DD)
-- time (HH:MM:SS)
-- current repo name ($HOME if none)
-- current repo branch ("NULL" if none)
+- date (`YYYY-MM-DD`)
+- time (`HH:MM:SS`)
+- current repo name (`$HOME` if none)
+- current repo branch ("`NULL`" if none)
 
 Use
 
     note [OPTIONS]
 
-to filter and then output the mathching notes to stdout.
+to filter and then output the mathching notes to `stdout`.
 
 `note` implements many filters. You can filter by any of the above metadata, or by the note text itself. For a full list of options, use `note --help`.
 
@@ -65,6 +65,7 @@ to filter and then output the mathching notes to stdout.
 - [ ] Consider removing the -x[char] syntax for negation, since this is achievable with regexp anyway...but is it better
   to have the shorthand available?
 - [ ] Consider improving the flag names (-gr and -gb get annoyingly long with x)
+- [ ] Consider changing the storage values of null git branch and repo. Use case?
 - [X] Make note text robust to special characters
 - [X] Add flag to remove notes from the database once they've been filtered
 
