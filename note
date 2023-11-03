@@ -40,6 +40,7 @@ show_help () {
       -l, --last [N]              Display the last matching note only.
                                   If N is given, display the last N notes.
       -t, --today                 Include only today's notes.
+      -X, --cut                   Remove the matched notes from the file.
 
     OTHER:
       -e, --edit                  Edit the output in \$EDITOR.
@@ -168,7 +169,7 @@ main () {
         local exclude_git_branch="$2"
         shift 2
         ;;
-      -X)
+      -X|--cut)
         local cut=1
         shift
         ;;
