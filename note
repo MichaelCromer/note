@@ -87,7 +87,7 @@ show_version () {
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-  note version 1.0.0
+  note version 1.1
   
   Author:  Michael C. Cromer
   License: GNU General Public License v3.0
@@ -103,6 +103,13 @@ verify_date () {
     echo "Invalid date format (must be YYYY(-MM(-DD))): $after_date" >&2
     exit 1
   fi
+}
+
+parse_note () {
+  local input="$1"
+  input="$(echo "$input" | tr -d '\t' | tr -d '\n')"
+  input="$(sed 's/[\*;&<>`|]/\\&/g' <<< "$input")"
+  echo "$input"
 }
 
 main () {
@@ -161,6 +168,10 @@ main () {
         local exclude_git_branch="$2"
         shift 2
         ;;
+      -X)
+        local cut=1
+        shift
+        ;;
       -e|--edit)
         local edit=1
         shift
@@ -189,11 +200,12 @@ main () {
         ;;
       --)
         shift
-        local note="$@"
+        local note="$(parse_note "$@")"
         break
         ;;
       *)
-        echo "Unknown option: $1" >&2
+        echo "  Unknown option: $1" >&2
+        echo "   ! If you meant to add a note, use '--' before it." >&2
         exit 1
         ;;
     esac
@@ -223,13 +235,17 @@ main () {
     else 
       echo "$data"
     fi
+
+    if [[ $cut ]]; then
+      mv "$NOTES_FILE" "$NOTES_FILE.bak"
+      grep -vx -f <(echo "$data") "$NOTES_FILE.bak" > "$NOTES_FILE"
+    fi
   fi
 
   if [[ -z $note ]]; then
     exit 0
   fi
 
-  note=$(echo "$note" | tr -d '\t' | tr -d '\n')
   local date=$(date +%Y-%m-%d)
   local time=$(date +%H:%M:%S)
   local user=$(whoami)
