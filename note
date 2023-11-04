@@ -200,7 +200,6 @@ main () {
         else
           shift
         fi
-        shift
         ;;
       -l[0-9]*) # a special case for those who like to use no space
         local last="${1:2}"
