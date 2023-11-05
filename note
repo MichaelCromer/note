@@ -310,7 +310,6 @@ main () {
   done
   
   if ! [[ $suppress ]]; then
-    [[ $today ]] && on_date=$(date +%Y-%m-%d)
     [[ $on_date ]] &&  data=$(awk -F$'\t' -v date="$on_date" '$2 ~ date' <<< "$data") 
     [[ $exclude_on_date ]] &&  data=$(awk -F$'\t' -v date="$exclude_on_date" '$2 !~ date' <<< "$data")
     [[ $after_date ]] &&  data=$(awk -F$'\t' -v date="$after_date" '$2 >= date' <<< "$data") 
