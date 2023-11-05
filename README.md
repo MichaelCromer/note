@@ -33,8 +33,8 @@ Notes are stored with the following metadata:
 - username
 - date (`YYYY-MM-DD`)
 - time (`HH:MM:SS`)
-- current repo name (`$HOME` if none)
-- current repo branch ("`NULL`" if none)
+- current repo name (`""` if none)
+- current repo branch (`""` if none)
 
 Use
 
@@ -49,14 +49,21 @@ to filter and then output the mathching notes to `stdout`.
     note -- "my new note"       Add the note "my new note" to the notes file.
     note -m "string"            Display all notes matching "string".
     note -a 2023                Display all notes from the year 2023 onwards.
-    note -e --today             Display today's notes in the editor.
+    note -e -d                  Display today's notes in the editor.
     note -d 2020-01 -- "text"   Display all notes from January 2020,
                                   then add the note "text" to the notes file.
-    note -gr "repo" -xgb "hotfix" -m "feature" -l 10
-                                Display the last ten notes which are:
-                                  from the git repository "repo"; 
+    note -d -X -s               Silently delete all notes from today.
+    note -b 2020-03 -xd 2018-01-10 -m "string1|string2" 
+                                Display all notes from before March 2020, 
+                                  excluding those from 10 January 2018,
+                                  and which match "string1" or "string2".
+    note -X -l10 -r "my_repo" -xB "hotfix" -m "feature" >> TODO.md
+                                Find the last ten notes which are:
+                                  from the git repository "my_repo"; 
                                   excluding those from the branch "hotfix";
-                                  and which match "feature".
+                                  and which match "feature". 
+                                  append them to the TODO.md file,
+                                  and delete them from the notes file.
 
 ## TODO
 
