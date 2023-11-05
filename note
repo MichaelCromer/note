@@ -35,18 +35,20 @@ show_help () {
       -xB  --not-git-branch [BRANCH]  Exclude notes from git branch BRANCH
 
     SPECIAL MATCHING:
-      -l,  --last [N]   Display the last matching note only.
-                        If N is given, display the last N notes.
-      -g,  --git        Shorthand for "-r -B" (current repo/branch).
-      -xg, --not-git    Shorthand for "-xr -xB" (not current repo/branch).
+      -l,  --last [N]        Display the last matching note only.
+                             If N is given, display the last N notes.
+      -g,  --git             Shorthand for "-r -B" (current repo/branch).
+      -xg, --not-git         Shorthand for "-xr -xB" (not current repo/branch).
+      -G,  --all-git         Include all notes from git repositories.
+      -xG, --not-all-git     Exclude all notes from git repositories.
 
     OTHER:
-      -s, --suppress    Suppress the displaying of notes.
-      -e, --edit        Edit the output in \$EDITOR.
-      -X, --extract     Remove the matched notes after displaying them.
-      -h, --help        Display this help and exit.
-      -i, --info        Display information about this script and exit.
-      --version         Display version information and exit.
+      -s, --suppress         Suppress the displaying of notes.
+      -e, --edit             Edit the output in \$EDITOR.
+      -X, --extract          Remove the matched notes after displaying them.
+      --help                 Display this help and exit.
+      --info                 Display information about this script and exit.
+      --version              Display version information and exit.
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -148,10 +150,11 @@ get_branch_name () {
 
 main () {
 
+  local is_git=0
   local repo=""
   local branch=""
   if is_git_repo; then
-    local is_git=1
+    is_git=1
     repo=$(get_repo_name)
     branch=$(get_branch_name)
   fi
@@ -256,6 +259,14 @@ main () {
         local exclude_git_branch="$branch"
         shift
         ;;
+      -G|--all-git)
+        local all_git=1
+        shift
+        ;;
+      -xG|--not-all-git)
+        local exclude_all_git=1
+        shift
+        ;;
       -X|--extract)
         local extract=1
         shift
@@ -284,11 +295,11 @@ main () {
         local last="${1:2}"
         shift
         ;;
-      -h|--help)
+      --help)
         show_help | fold -s -w "$COLUMNS"
         exit 0
         ;;
-      -i|--info)
+      --info)
         show_info | fold -s -w "$COLUMNS"
         exit 0
         ;;
@@ -316,10 +327,16 @@ main () {
     [[ $before_date ]] &&  data=$(awk -F$'\t' -v date="$before_date" '$2 < date' <<< "$data") 
     [[ $match ]] && data=$(awk -F$'\t' -v mtch="$match" '$6 ~ mtch' <<< "$data")
     [[ $exclude_match ]] && data=$(awk -F$'\t' -v mtch="$exclude_match" '$6 !~ mtch' <<< "$data")
+
+    [[ $all_git ]] && data=$(awk -F$'\t' '$4 != "" && $5 != ""' <<< "$data")
+    [[ $is_git == 0 ]] && data=$(awk -F$'\t' '$4 == "" && $5 == ""' <<< "$data")
+    [[ $exclude_all_git ]] && data=$(awk -F$'\t' '$4 == "" && $5 == ""' <<< "$data")
+
     [[ $git_repo ]] && data=$(awk -F$'\t' -v repo="$git_repo" '$4 ~ repo' <<< "$data")
     [[ $exclude_git_repo ]] && data=$(awk -F$'\t' -v repo="$exclude_git_repo" '$4 !~ repo' <<< "$data")
     [[ $git_branch ]] && data=$(awk -F$'\t' -v branch="$git_branch" '$5 ~ branch' <<< "$data")
     [[ $exclude_git_branch ]] && data=$(awk -F$'\t' -v branch="$exclude_git_branch" '$5 !~ branch' <<< "$data")
+
     [[ $last ]] && data=$(tail -n "$last" <<< "$data")
 
     if [[ $edit ]]; then
