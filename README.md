@@ -1,4 +1,4 @@
-# NOTE v1.1
+# NOTE v1.2
 
 Written by Michael Cromer
 
@@ -60,13 +60,12 @@ to filter and then output the mathching notes to `stdout`.
 
 ## TODO
 
-- [ ] Move data to initial, make options apply filters directly, so that multiple instances can be applied. E.g. `note
+- [~] Move data to initial, make options apply filters directly, so that multiple instances can be applied. E.g. `note
   -m "string1" -m "string2"` will work exactly like `note -m "string1|string2"`
-- [ ] Improve/cleanup code base, try to encapsulate behaviour in functions, add comments etc.
-- [ ] Add option to use current git repo without typing in manually, and another for repo + branch
-- [ ] Keep -x[char] syntax for negation generally. Find single chars for "repo" and "branch".
-- [ ] ??? Enable editing of notes in place
-- [ ] Consider changing the storage values of null git branch and repo. Use case?
+- [~] Improve/cleanup code base, try to encapsulate behaviour in functions, add comments etc.
+- [X] Add option to use current git repo without typing in manually, and another for repo + branch
+- [X] Keep -x[char] syntax for negation generally. Find single chars for "repo" and "branch".
+- [X] Consider changing the storage values of null git branch and repo. Use case?
 - [X] Make note text robust to special characters
 - [X] Add flag to remove notes from the database once they've been filtered
 - [X] Add flag to dump filtered notes to file (DEPRECATED: user should redirect sdtout to desired file; don't reinvent
@@ -75,3 +74,4 @@ to filter and then output the mathching notes to `stdout`.
   to have the shorthand available? (UPDATED Sun 05 Nov 2023 10:35:04 AEDT)
 - [X] Consider improving the flag names (-gr and -gb get annoyingly long with x) (UPDATED Sun 05 Nov 2023 10:35:04
   AEDT)
+- [X] ??? Enable editing of notes in place (DEPRECATED: maybe later, but not really useful right now)
