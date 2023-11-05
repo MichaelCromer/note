@@ -124,7 +124,27 @@ parse_note () {
   echo "$input"
 }
 
+is_git_repo () {
+  git rev-parse --is-inside-work-tree &> /dev/null
+}
+
+get_repo_name () {
+  basename "$(git rev-parse --show-toplevel)"
+}
+
+get_branch_name () {
+  git rev-parse --abbrev-ref HEAD
+}
+
 main () {
+
+  local repo=""
+  local branch=""
+  if [ $(is_git_repo) ]; then 
+    repo=$(get_repo_name)
+    branch=$(get_branch_name)
+  fi
+
   if [[ $# -eq 0 ]]; then
     show_help | fold -s -w "$COLUMNS"
     exit 0
@@ -132,6 +152,10 @@ main () {
 
   if [[ "$1" == "--" ]]; then
     local suppress=1
+    local note="$(parse_note "$2")"
+    shift 2
+  else
+    local data=$(cat "$NOTES_FILE")
   fi
 
   while [ $# -gt 0 ]; do
@@ -151,7 +175,7 @@ main () {
         verify_date "$on_date"
         shift 2
         ;;
-      -xd|--xdate)
+      -xd|--not-date)
         local exclude_on_date="$2"
         verify_date "$exclude_on_date"
         shift 2
@@ -160,48 +184,47 @@ main () {
         local match="$2"
         shift 2
         ;;
-      -xm|--xmatch)
+      -xm|--not-match)
         local exclude_match="$2"
         shift 2
         ;;
-      -gr|--git-repo)
+      -r|--git-repo)
         local git_repo="$2"
         shift 2
         ;;
-      -xgr|--xgit-repo)
+      -xr|--not-git-repo)
         local exclude_git_repo="$2"
         shift 2
         ;;
-      -gb|--git-branch)
+      -B|--git-branch)
         local git_branch="$2"
         shift 2
         ;;
-      -xgb|--xgit-branch)
+      -xB|--not-git-branch)
         local exclude_git_branch="$2"
         shift 2
         ;;
-      -X|--cut)
+      -X|--extract)
         local cut=1
         shift
         ;;
-      -e|--edit)
+      -E|--edit)
         local edit=1
         shift
         ;;
-      --today)
+      -T|--today)
         local today=1
         shift
         ;;
-      -l|--last)
+      -L|--last)
         local last=1
         if [[ $2 =~ ^[0-9]+$ ]]; then
           local last="$2"
-          shift 2
-        else
-          shift
+          shift 
         fi
+        shift
         ;;
-      -l[0-9]*) # a special case for those who like to use no space
+      -L[0-9]*) # a special case for those who like to use no space
         local last="${1:2}"
         shift
         ;;
@@ -227,7 +250,6 @@ main () {
   done
   
   if ! [[ $suppress ]]; then
-    data=$(cat "$NOTES_FILE")
     [[ $today ]] && on_date=$(date +%Y-%m-%d)
     [[ $on_date ]] &&  data=$(awk -F$'\t' -v date="$on_date" '$2 ~ date' <<< "$data") 
     [[ $exclude_on_date ]] &&  data=$(awk -F$'\t' -v date="$exclude_on_date" '$2 !~ date' <<< "$data")
@@ -264,21 +286,8 @@ main () {
   local date=$(date +%Y-%m-%d)
   local time=$(date +%H:%M:%S)
   local user=$(whoami)
-
-  # Check if the current directory is in a git repository
-  if [ $(git rev-parse --is-inside-work-tree) ]; then
-    # Get the base name of the top level directory of the git repository
-    dir=$(basename "$(git rev-parse --show-toplevel)")
-    # Get the current branch
-    branch=$(git rev-parse --abbrev-ref HEAD)
-  else
-    # If not in a git repo, use the base of the current directory and a branch of NULL
-    dir=$(basename "$HOME")
-    branch="NULL"
-  fi
-
   # Append the note to the file
-  echo -e "$user\t$date\t$time\t$dir\t$branch\t$note" >> "$NOTES_FILE"
+  echo -e "$user\t$date\t$time\t$repo\t$branch\t$note" >> "$NOTES_FILE"
 
 }
 
