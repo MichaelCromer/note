@@ -4,7 +4,7 @@ Written by Michael Cromer
 
 ## Summary
 
-Take notes from anywhere in the terminal. Filter existing notes based on metadata, and send them to stdout or to your
+Take notes from anywhere in the terminal. Filter existing notes based on metadata, and send them to `stdout` or to your
 `$EDITOR`.
 
 ## Installation
