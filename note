@@ -241,8 +241,13 @@ main () {
         local git_branch="$branch"
         shift
         ;;
+      -xg|--not-git)
+        local exclude_git_repo="$repo"
+        local exclude_git_branch="$branch"
+        shift
+        ;;
       -X|--extract)
-        local cut=1
+        local extract=1
         shift
         ;;
       -s|--suppress)
@@ -318,7 +323,7 @@ main () {
       echo "$data"
     fi
 
-    if [[ $cut ]]; then
+    if [[ $extract ]]; then
       mv "$NOTES_FILE" "$NOTES_FILE.bak"
       grep -vx -f <(echo "$data") "$NOTES_FILE.bak" > "$NOTES_FILE"
     fi
