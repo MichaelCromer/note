@@ -244,6 +244,10 @@ main () {
         local cut=1
         shift
         ;;
+      -s|--suppress)
+        local suppress=1
+        shift
+        ;;
       -e|--edit)
         local edit=1
         shift
