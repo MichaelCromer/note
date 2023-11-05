@@ -60,9 +60,9 @@ to filter and then output the mathching notes to `stdout`.
 
 ## TODO
 
-- [~] Move data to initial, make options apply filters directly, so that multiple instances can be applied. E.g. `note
+- [ ] Move data to initial, make options apply filters directly, so that multiple instances can be applied. E.g. `note
   -m "string1" -m "string2"` will work exactly like `note -m "string1|string2"`
-- [~] Improve/cleanup code base, try to encapsulate behaviour in functions, add comments etc.
+- [ ] Improve/cleanup code base, try to encapsulate behaviour in functions, add comments etc.
 - [X] Add option to use current git repo without typing in manually, and another for repo + branch
 - [X] Keep -x[char] syntax for negation generally. Find single chars for "repo" and "branch".
 - [X] Consider changing the storage values of null git branch and repo. Use case?
