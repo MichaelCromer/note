@@ -11,55 +11,66 @@ show_help () {
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-  Usage: note -- [NOTE]      
-      OR note [OPTIONS] 
-      OR note [OPTIONS] -- [NOTE]
+  Usage: note [OPTIONS] -- [NOTE]      
 
 --------------------------------------------------------------------------------
 
   Summary:
-    Manage, filter, and display notes from a central file.
+    Manage, filter, and display notes from anywhere in your terminal.
 
 --------------------------------------------------------------------------------
 
   Options:
 
     GENERAL MATCHING:
-      -a, --after        DATE     Include notes on or after DATE 
-      -b, --before       DATE     Include notes strictly before DATE 
-      -d, --date         DATE     Include notes exactly on DATE 
-      -xd, --xdate       DATE     Include notes exactly on DATE 
-      -m, --match        STRING   Include notes matching STRING
-      -xm, -xmatch       STRING   Exclude notes matching STRING
-      -gr, --git-repo    REPO     Include notes from git repository REPO
-      -xgr --xgit-repo   REPO     Exclude notes from git repository REPO
-      -gb, --git-branch  BRANCH   Include notes from git branch BRANCH
-      -xgb --xgit-branch BRANCH   Exclude notes from git branch BRANCH
+      -a,  --after           DATE     Include notes on or after DATE 
+      -b,  --before          DATE     Include notes strictly before DATE 
+      -d,  --date            [DATE]   Include notes exactly on DATE 
+      -xd, --not-date        DATE     Exclude notes exactly on DATE 
+      -m,  --match           STRING   Include notes matching STRING
+      -xm, --not-match       STRING   Exclude notes matching STRING
+      -r,  --git-repo        [REPO]   Include notes from git repository REPO
+      -xr  --not-git-repo    [REPO]   Exclude notes from git repository REPO
+      -B,  --git-branch      [BRANCH] Include notes from git branch BRANCH
+      -xB  --not-git-branch  [BRANCH] Exclude notes from git branch BRANCH
 
-    SPECIAL:
-      -l, --last [N]              Display the last matching note only.
-                                  If N is given, display the last N notes.
-      -t, --today                 Include only today's notes.
-      -X, --cut                   Remove the matched notes from the file.
+    SPECIAL MATCHING:
+      -l,  --last [N]   Display the last matching note only.
+                        If N is given, display the last N notes.
+      -g,  --git        Shorthand for "-r -B" (current repo/branch).
+      -xg, --not-git    Shorthand for "-xr -xB" (not current repo/branch).
 
     OTHER:
-      -e, --edit                  Edit the output in \$EDITOR.
-      -h, --help                  Display this help and exit.
-      --version                   Display version information and exit.
+      -s, --suppress    Suppress the displaying of notes.
+      -e, --edit        Edit the output in \$EDITOR.
+      -X, --extract     Remove the matched notes after displaying them.
+      -h, --help        Display this help and exit.
+      -i, --info        Display information about this script and exit.
+      --version         Display version information and exit.
 
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+EOF
+}
+
+show_info () {
+  cat << EOF
+--------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
   Description:
 
     FILTERING:
-      - Displays all notes matching all given options (logical AND).
-      - If no options are given, no notes are displayed. 
+      - Selects for notes matching all given options (logical AND).
+      - If no options are given, no filtering is performed, and nothing is 
+          displayed.
       - Dates may be in the format YYYY-MM-DD or YYYY-MM or YYYY.
-      - All matching is done via regular expressions. You can use the 
+      - If optional arguments are omitted, the 'current' value is used.
+      - All string matching is done via regular expressions. You can use 
         standard regex metacharacters. To match a literal metacharacter,
         escape it with a backslash.
 
-    NOTE:
+    NOTES:
       - A note must be preceded by the "--" option, to avoid ambiguity.
       - If no "--" is given, or the note is empty, no note is added.
       - If the current directory is inside a git repository, the repository 
@@ -72,10 +83,10 @@ show_help () {
     note -- "my new note"       Add the note "my new note" to the notes file.
     note -m "string"            Display all notes matching "string".
     note -a 2023                Display all notes from the year 2023 onwards.
-    note -e --today             Display today's notes in the editor.
+    note -e -date               Display today's notes in the editor.
     note -d 2020-01 -- "text"   Display all notes from January 2020,
                                   then add the note "text" to the notes file.
-    note --today -X             Delete all notes from today.
+    note -d -X                  Delete all notes from today.
     note -b 2020-03 -xd 2018-01-10 -m "string1|string2" 
                                 Display all notes from before March 2020, 
                                   excluding those from 10 January 2018,
@@ -87,7 +98,6 @@ show_help () {
                                   and which match "feature". 
                                 Then, delete them from the notes file and 
                                   append them to the TODO.md file.
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -151,9 +161,10 @@ main () {
   fi
 
   if [[ "$1" == "--" ]]; then
+    shift
     local suppress=1
-    local note="$(parse_note "$2")"
-    shift 2
+    local note="$(parse_note "$*")"
+    set --
   else
     local data=$(cat "$NOTES_FILE")
   fi
@@ -189,34 +200,59 @@ main () {
         shift 2
         ;;
       -r|--git-repo)
-        local git_repo="$2"
-        shift 2
+        if [[ $2 =~ ^- ]]; then
+          local git_repo="$repo"
+        else 
+          local git_repo="$2"
+          shift
+        fi
+        shift
         ;;
       -xr|--not-git-repo)
-        local exclude_git_repo="$2"
-        shift 2
+        if [[ $2 =~ ^- ]]; then
+          local exclude_git_repo="$repo"
+        else 
+          local exclude_git_repo="$2"
+          shift
+        fi
+        shift
         ;;
       -B|--git-branch)
-        local git_branch="$2"
-        shift 2
+        if [[ $2 =~ ^- ]]; then
+          local git_branch="$branch"
+        else 
+          local git_branch="$2"
+          shift
+        fi
+        shift 
         ;;
       -xB|--not-git-branch)
-        local exclude_git_branch="$2"
-        shift 2
+        if [[ $2 =~ ^- ]]; then
+          local exclude_git_branch="$branch"
+        else 
+          local exclude_git_branch="$2"
+          shift
+        fi
+        shift
+        ;;
+      -g|--git)
+        local git_repo="$repo"
+        local git_branch="$branch"
+        shift
         ;;
       -X|--extract)
         local cut=1
         shift
         ;;
-      -E|--edit)
+      -e|--edit)
         local edit=1
         shift
         ;;
-      -T|--today)
+      -t|--today)
         local today=1
         shift
         ;;
-      -L|--last)
+      -l|--last)
         local last=1
         if [[ $2 =~ ^[0-9]+$ ]]; then
           local last="$2"
@@ -224,12 +260,16 @@ main () {
         fi
         shift
         ;;
-      -L[0-9]*) # a special case for those who like to use no space
+      -l[0-9]*) # a special case for those who like to use no space
         local last="${1:2}"
         shift
         ;;
       -h|--help)
         show_help | fold -s -w "$COLUMNS"
+        exit 0
+        ;;
+      -i|--info)
+        show_info | fold -s -w "$COLUMNS"
         exit 0
         ;;
       --version)
