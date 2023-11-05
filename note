@@ -77,29 +77,31 @@ show_info () {
       - If no "--" is given, or the note is empty, no note is added.
       - If the current directory is inside a git repository, the repository 
           name and current branch are automatically recorded.
+      - Username, date, and time of note are also recorded.
 
 
 --------------------------------------------------------------------------------
 
   Examples:
+
     note -- "my new note"       Add the note "my new note" to the notes file.
     note -m "string"            Display all notes matching "string".
     note -a 2023                Display all notes from the year 2023 onwards.
-    note -e -date               Display today's notes in the editor.
+    note -e -d                  Display today's notes in the editor.
     note -d 2020-01 -- "text"   Display all notes from January 2020,
                                   then add the note "text" to the notes file.
-    note -d -X                  Delete all notes from today.
+    note -d -X -s               Silently delete all notes from today.
     note -b 2020-03 -xd 2018-01-10 -m "string1|string2" 
                                 Display all notes from before March 2020, 
                                   excluding those from 10 January 2018,
                                   and which match "string1" or "string2".
-    note -X -l10 -gr "my_repo" -xgb "hotfix" -m "feature" >> TODO.md
+    note -X -l10 -r "my_repo" -xB "hotfix" -m "feature" >> TODO.md
                                 Find the last ten notes which are:
                                   from the git repository "my_repo"; 
                                   excluding those from the branch "hotfix";
                                   and which match "feature". 
-                                Then, delete them from the notes file and 
-                                  append them to the TODO.md file.
+                                  append them to the TODO.md file,
+                                  and delete them from the notes file.
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -111,7 +113,7 @@ show_version () {
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-  note version 1.1
+  note version 1.2
   
   Author:  Michael C. Cromer
   License: GNU General Public License v3.0
@@ -166,7 +168,7 @@ main () {
 
   if [[ "$1" == "--" ]]; then
     shift
-    local suppress=1
+    local suppress_filter=1
     local note="$(parse_note "$*")"
     set --
   else
@@ -272,7 +274,7 @@ main () {
         shift
         ;;
       -s|--suppress)
-        local suppress=1
+        local suppress_stdout=1
         shift
         ;;
       -e|--edit)
@@ -320,7 +322,7 @@ main () {
     esac
   done
   
-  if ! [[ $suppress ]]; then
+  if ! [[ $suppress_filter ]]; then
     [[ $on_date ]] &&  data=$(awk -F$'\t' -v date="$on_date" '$2 ~ date' <<< "$data") 
     [[ $exclude_on_date ]] &&  data=$(awk -F$'\t' -v date="$exclude_on_date" '$2 !~ date' <<< "$data")
     [[ $after_date ]] &&  data=$(awk -F$'\t' -v date="$after_date" '$2 >= date' <<< "$data") 
@@ -342,11 +344,11 @@ main () {
     if [[ $edit ]]; then
       local editor=${EDITOR:-vim}
       local tmpfile=$(mktemp)
-      echo "$data" | column -t -s$'\t' > "$tmpfile"
+      echo "$data" | column -t -s$'\t' > "$tmpfile" # use column so that the user can edit more easily
       $editor "$tmpfile"
       rm "$tmpfile"
     else 
-      echo "$data"
+      ! [[ $suppress_stdout ]] && echo "$data" 
     fi
 
     if [[ $extract ]]; then
