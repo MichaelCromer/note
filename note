@@ -339,6 +339,9 @@ main () {
 
     [[ $last ]] && data=$(tail -n "$last" <<< "$data")
 
+    # now finally trim all the metadata away for printing
+    data=$(awk -F$'\t' '{print $6}' <<< "$data")
+    
     if [[ $edit ]]; then
       local editor=${EDITOR:-vim}
       local tmpfile=$(mktemp)
@@ -348,6 +351,7 @@ main () {
     else 
       ! [[ $suppress_stdout ]] && echo "$data" 
     fi
+
 
     if [[ $extract ]]; then
       mv "$NOTES_FILE" "$NOTES_FILE.bak"
