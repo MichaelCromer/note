@@ -67,6 +67,7 @@ to filter and then output the mathching notes to `stdout`.
 
 ## TODO
 
+- [ ] Implement the ability to trim fields to only those of interest.
 - [ ] Move data to initial, make options apply filters directly, so that multiple instances can be applied. E.g. `note
   -m "string1" -m "string2"` will work exactly like `note -m "string1|string2"`
 - [ ] Improve/cleanup code base, try to encapsulate behaviour in functions, add comments etc.
