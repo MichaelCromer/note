@@ -133,7 +133,7 @@ verify_date () {
 
 parse_note () {
   local input="$1"
-  input="$(echo "$input" | tr -d '\t' )"
+  input="$(echo "$input" | tr -d '\t' | tr -d '\n')"
   input="$(sed 's/[\*;&<>`|]/\\&/g' <<< "$input")"
   echo "$input"
 }
@@ -169,6 +169,7 @@ main () {
   if [[ "$1" == "--" ]]; then
     shift
     local suppress_filter=1
+    local note="$(parse_note "$*")"
     set --
   else
     local data=$(cat "$NOTES_FILE")
@@ -310,6 +311,7 @@ main () {
         ;;
       --)
         shift
+        local note="$(parse_note "$@")"
         break
         ;;
       *)
@@ -339,9 +341,6 @@ main () {
 
     [[ $last ]] && data=$(tail -n "$last" <<< "$data")
 
-    # now finally trim all the metadata away for printing
-    data=$(awk -F$'\t' '{print $6}' <<< "$data")
-    
     if [[ $edit ]]; then
       local editor=${EDITOR:-vim}
       local tmpfile=$(mktemp)
@@ -352,14 +351,11 @@ main () {
       ! [[ $suppress_stdout ]] && echo "$data" 
     fi
 
-
     if [[ $extract ]]; then
       mv "$NOTES_FILE" "$NOTES_FILE.bak"
       grep -vx -f <(echo "$data") "$NOTES_FILE.bak" > "$NOTES_FILE"
     fi
   fi
-
-  local user=$(whoami)
 
   if [[ -z $note ]]; then
     exit 0
@@ -367,6 +363,7 @@ main () {
 
   local date=$(date +%Y-%m-%d)
   local time=$(date +%H:%M:%S)
+  local user=$(whoami)
   # Append the note to the file
   echo -e "$user\t$date\t$time\t$repo\t$branch\t$note" >> "$NOTES_FILE"
 
